@@ -1,6 +1,6 @@
 {
-  "name": "new23d-winrmSSL",
-  "version": "0.0.1",
+  "name": "new23d-winrmssl",
+  "version": "0.0.2",
   "author": "new23d",
   "summary": "Setup WinRM over HTTPS and control some basic, essential settings. Also supports Puppet CA issued certificates.",
   "license": "Apache-2.0",
