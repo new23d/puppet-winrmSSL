@@ -1,4 +1,4 @@
-Puppet::Type.newtype(:winrmSSL) do
+Puppet::Type.newtype(:winrmssl) do
   ensurable
 
   newparam(:issuer, namevar: true) do
