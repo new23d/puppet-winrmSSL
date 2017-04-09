@@ -1,11 +1,13 @@
 require 'openssl'
 require 'open3'
 
-Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
-  ## confines
-  confine osfamily: 'windows'
+# Modified by John Puskar
+# See diffs at https://github.com/jpuskar/puppet-winrmSSL
 
-  ## helpers
+Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
+  confine :osfamily => :windows
+
+  # helpers
   def _thumbprint
     # is the namevar/issuer a Filesystem Path, or a Distinguished Name (DN)?
     var_issuer_in_file = File.exist?(@resource[:issuer])
@@ -23,11 +25,9 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     # remove leading slash if found
     issuer_subject.gsub!(%r{^(\/)(.*)$}, '\2')
 
-    # var_cmd = "powershell @(get-childitem certificate::localmachine/my ^| where-object { $_.issuer -eq '#{issuer_subject}' -and $_.dnsnamelist -contains '#{Facter['fqdn'].value}' -and $_.hasprivatekey -and $_.enhancedkeyusagelist.friendlyname -contains 'Server Authentication'} ^| sort-object -property notafter -descending} )[0].thumbprint"
-    # var_cmd = "powershell @(get-childitem certificate::localmachine/my ^| where-object { $_.issuer -eq '#{issuer_subject}' -and $_.dnsnamelist -contains '#{Facter['fqdn'].value}' -and $_.hasprivatekey -and $_.enhancedkeyusagelist.objectid -contains '1.3.6.1.5.5.7.3.1'} ^| sort-object -property notafter -descending)[0].thumbprint"
-	var_cmd = "powershell @(get-childitem certificate::localmachine/my ^| where-object { $_.issuer -eq '#{issuer_subject}' -and $_.subject -eq 'CN=#{Facter['fqdn'].value}' -and $_.hasprivatekey} ^| sort-object -property notafter -descending)[0].thumbprint"
+    var_cmd = "powershell @(get-childitem certificate::localmachine/my ^| where-object { $_.issuer -eq '#{issuer_subject}' -and $_.subject -eq 'CN=#{Facter['fqdn'].value}' -and $_.hasprivatekey} ^| sort-object -property notafter -descending)[0].thumbprint"
     stdin, stdout, stderr, wait_thr = Open3.popen3(var_cmd)
-	stdin.close
+	  stdin.close
     var_rc = wait_thr.value.exitstatus
     var_stdout_raw = stdout.read
     var_stdout_raw.strip!
@@ -42,7 +42,7 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_thumbprint
   end
 
-  ## getters
+  # getters
   def certificatethumbprint
     var_cmd = 'winrm.cmd enumerate winrm/config/listener'
     var_rgx = %r{CertificateThumbprint = ([0-9A-F]{40,40})$}
@@ -115,6 +115,57 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_state
   end
 
+  def auth_credssp
+    var_cmd = 'winrm.cmd get winrm/config/service/auth'
+    var_rgx = %r{CredSSP = true$}
+
+    stdin, stdout, stderr, wait_thr = Open3.popen3(var_cmd)
+    stdin.close
+    var_rc = wait_thr.value.exitstatus
+    var_stdout = stdout.read
+
+    rgx_mth = var_rgx.match(var_stdout)
+    var_state = (!rgx_mth.nil?)
+
+    var_state = var_state.to_s.intern
+
+    var_state
+  end
+
+  def auth_kerberos
+    var_cmd = 'winrm.cmd get winrm/config/service/auth'
+    var_rgx = %r{Kerberos = true$}
+
+    stdin, stdout, stderr, wait_thr = Open3.popen3(var_cmd)
+    stdin.close
+    var_rc = wait_thr.value.exitstatus
+    var_stdout = stdout.read
+
+    rgx_mth = var_rgx.match(var_stdout)
+    var_state = (!rgx_mth.nil?)
+
+    var_state = var_state.to_s.intern
+
+    var_state
+  end
+
+  def auth_negotiate
+    var_cmd = 'winrm.cmd get winrm/config/service/auth'
+    var_rgx = %r{Negotiate = true$}
+
+    stdin, stdout, stderr, wait_thr = Open3.popen3(var_cmd)
+    stdin.close
+    var_rc = wait_thr.value.exitstatus
+    var_stdout = stdout.read
+
+    rgx_mth = var_rgx.match(var_stdout)
+    var_state = (!rgx_mth.nil?)
+
+    var_state = var_state.to_s.intern
+
+    var_state
+  end
+
   def maxmemorypershellmb
     var_cmd = 'winrm.cmd get winrm/config/winrs'
     var_rgx = %r{MaxMemoryPerShellMB = ([0-9]{1,})$}
@@ -173,6 +224,27 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
 
   def auth_basic=(var_param)
     var_cmd = "winrm set winrm/config/service/auth @{Basic=\"#{var_param}\"}"
+    stdin, stdout, stderr, wait_thr = Open3.popen3(var_cmd)
+    stdin.close
+    var_rc = wait_thr.value.exitstatus
+  end
+
+  def auth_credssp=(var_param)
+    var_cmd = "winrm set winrm/config/service/auth @{CredSSP=\"#{var_param}\"}"
+    stdin, stdout, stderr, wait_thr = Open3.popen3(var_cmd)
+    stdin.close
+    var_rc = wait_thr.value.exitstatus
+  end
+
+  def auth_kerberos=(var_param)
+    var_cmd = "winrm set winrm/config/service/auth @{Kerberos=\"#{var_param}\"}"
+    stdin, stdout, stderr, wait_thr = Open3.popen3(var_cmd)
+    stdin.close
+    var_rc = wait_thr.value.exitstatus
+  end
+
+  def auth_negotiate=(var_param)
+    var_cmd = "winrm set winrm/config/service/auth @{Negotiate=\"#{var_param}\"}"
     stdin, stdout, stderr, wait_thr = Open3.popen3(var_cmd)
     stdin.close
     var_rc = wait_thr.value.exitstatus
