@@ -3,4 +3,5 @@
 ---
 fixtures:
   forge_modules:
+    #    windows_puppet_certificates: puppetlabs/windows_puppet_certificates
 #     stdlib: "puppetlabs/stdlib"

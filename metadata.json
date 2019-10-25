@@ -1,12 +1,15 @@
 {
-  "name": "new23d-winrmssl",
-  "version": "0.0.3",
-  "author": "new23d, jpuskar",
+  "name": "nekototori-winrmssl",
+  "version": "1.0.0",
+  "author": "new23d, jpuskar, nekototori",
   "summary": "Setup WinRM over HTTPS and control some basic, essential settings. Also supports Puppet CA issued certificates.",
   "license": "Apache-2.0",
-  "source": "https://github.com/new23d/puppet-winrmSSL.git",
-  "project_page": "https://github.com/new23d/puppet-winrmSSL",
-  "issues_url": "https://github.com/new23d/puppet-winrmSSL/issues",
+  "source": "https://github.com/Nekototori/puppet-winrmSSL.git",
+  "project_page": "https://github.com/Nekototori/puppet-winrmSSL",
+  "issues_url": "https://github.com/Nekototori/puppet-winrmSSL/issues",
+  "dependencies": [
+
+  ],
   "operatingsystem_support": [
     {
       "operatingsystem": "Windows",
@@ -15,12 +18,28 @@
         "Server 2008 R2",
         "Server 2012",
         "Server 2012 R2",
+        "Server 2016",
+        "Server 2016 R2",
+        "Server 2019",
         "7",
-        "8"
+        "8",
+        "10"
       ]
     }
   ],
-  "dependencies": [],
-  "tags": ["winrm", "https", "tls", "ssl"]
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 4.10.0 < 7.0.0"
+    }
+  ],
+  "tags": [
+    "winrm",
+    "https",
+    "tls",
+    "ssl"
+  ],
+  "pdk-version": "1.14.0",
+  "template-url": "pdk-default#1.14.0",
+  "template-ref": "1.14.0-0-g1bf3a4e"
 }
-

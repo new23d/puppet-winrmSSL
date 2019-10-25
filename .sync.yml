@@ -1,0 +1,16 @@
+---
+gitignore:
+  required:
+    - ---.project
+
+.gitlab-ci.yml:
+  unmanaged: true
+
+.travis.yml:
+  unmanaged: true
+
+appveyor.yml:
+  unmanaged: true
+
+spec/spec_helper.rb:
+  mock_with: ':rspec'

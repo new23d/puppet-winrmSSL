@@ -1,6 +1,6 @@
 # winrmSSL
 
-Setup WinRM over HTTPS and control some basic, essential settings. Also supports Puppet CA issued certificates.
+Setup WinRM over HTTPS and control some basic, essential settings. Also supports Puppet CA issued certificates if using [puppetlabs/windows_puppet_certificates](https://forge.puppet.com/puppetlabs/windows_puppet_certificates).
 
 ### Parameters
 

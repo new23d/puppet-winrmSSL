@@ -5,6 +5,11 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
   confine osfamily: :windows
 
   # helpers
+  def exec_call(var_cmd)
+    stdout_str, status = Open3.capture2(var_cmd)
+    [stdout_str, status.exitstatus]
+  end
+
   def _thumbprint
     # is the namevar/issuer a Filesystem Path, or a Distinguished Name (DN)?
     var_issuer_in_file = File.exist?(@resource[:issuer])
@@ -27,10 +32,8 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
 
     var_cmd = "powershell @(get-childitem certificate::localmachine/my ^| where-object { $_.issuer -like '#{issuer_subject}'" \
       " -and $_.subject -eq 'CN=#{Facter['fqdn'].value}' -and $_.hasprivatekey} ^| sort-object -property notafter -descending)[0].thumbprint"
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout_raw = stdout.read
+    stdout_str, = exec_call(var_cmd)
+    var_stdout_raw = stdout_str
     var_stdout_raw.strip!
 
     if var_stdout_raw.empty?
@@ -48,12 +51,9 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_cmd = 'winrm.cmd enumerate winrm/config/listener'
     var_rgx = %r{CertificateThumbprint = ([0-9A-F]{40,40})$}
 
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
+    stdout_str, = exec_call(var_cmd)
 
-    rgx_mth = var_rgx.match(var_stdout)
+    rgx_mth = var_rgx.match(stdout_str)
     var_state = if !rgx_mth.nil?
                   rgx_mth[1]
                 else
@@ -67,12 +67,9 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_cmd = 'winrm.cmd enumerate winrm/config/listener'
     var_rgx = %r{Transport = HTTP$}
 
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
+    stdout_str, = exec_call(var_cmd)
 
-    rgx_mth = var_rgx.match(var_stdout)
+    rgx_mth = var_rgx.match(stdout_str)
     var_state = rgx_mth.nil?
 
     var_state = var_state.to_s.to_sym
@@ -84,12 +81,9 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_cmd = 'winrm.cmd enumerate winrm/config/listener'
     var_rgx = %r{Transport = HTTPS\n[ ]{1,}Port = ([0-9]{1,5})$}
 
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
+    stdout_str, = exec_call(var_cmd)
 
-    rgx_mth = var_rgx.match(var_stdout)
+    rgx_mth = var_rgx.match(stdout_str)
     var_state = if !rgx_mth.nil?
                   rgx_mth[1]
                 else
@@ -103,12 +97,8 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_cmd = 'winrm.cmd get winrm/config/service/auth'
     var_rgx = %r{Basic = true$}
 
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
-
-    rgx_mth = var_rgx.match(var_stdout)
+    stdout_str, = exec_call(var_cmd)
+    rgx_mth = var_rgx.match(stdout_str)
     var_state = !rgx_mth.nil?
 
     var_state = var_state.to_s.to_sym
@@ -120,12 +110,8 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_cmd = 'winrm.cmd get winrm/config/service/auth'
     var_rgx = %r{CredSSP = true$}
 
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
-
-    rgx_mth = var_rgx.match(var_stdout)
+    stdout_str, = exec_call(var_cmd)
+    rgx_mth = var_rgx.match(stdout_str)
     var_state = !rgx_mth.nil?
 
     var_state = var_state.to_s.to_sym
@@ -137,12 +123,8 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_cmd = 'winrm.cmd get winrm/config/service/auth'
     var_rgx = %r{Kerberos = true$}
 
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
-
-    rgx_mth = var_rgx.match(var_stdout)
+    stdout_str, = exec_call(var_cmd)
+    rgx_mth = var_rgx.match(stdout_str)
     var_state = !rgx_mth.nil?
 
     var_state = var_state.to_s.to_sym
@@ -154,12 +136,9 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_cmd = 'winrm.cmd get winrm/config/service/auth'
     var_rgx = %r{Negotiate = true$}
 
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
+    stdout_str, = exec_call(var_cmd)
 
-    rgx_mth = var_rgx.match(var_stdout)
+    rgx_mth = var_rgx.match(stdout_str)
     var_state = !rgx_mth.nil?
 
     var_state = var_state.to_s.to_sym
@@ -171,12 +150,9 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_cmd = 'winrm.cmd get winrm/config/winrs'
     var_rgx = %r{MaxMemoryPerShellMB = ([0-9]{1,})$}
 
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
+    stdout_str, = exec_call(var_cmd)
 
-    rgx_mth = var_rgx.match(var_stdout)
+    rgx_mth = var_rgx.match(stdout_str)
     var_state = if !rgx_mth.nil?
                   rgx_mth[1]
                 else
@@ -190,12 +166,9 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_cmd = 'winrm.cmd get winrm/config'
     var_rgx = %r{MaxTimeoutms = ([0-9]{1,})$}
 
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
+    stdout_str, = exec_call(var_cmd)
 
-    rgx_mth = var_rgx.match(var_stdout)
+    rgx_mth = var_rgx.match(stdout_str)
     var_state = if !rgx_mth.nil?
                   rgx_mth[1]
                 else
@@ -213,9 +186,8 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
                 'winrm create winrm/config/listener?Address=*+Transport=HTTP'
               end
 
-    stdin, _stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
+    _, exitstatus = exec_call(var_cmd)
+    exitstatus
   end
 
   def port=(_var_param)
@@ -225,44 +197,38 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
 
   def auth_basic=(var_param)
     var_cmd = "winrm set winrm/config/service/auth @{Basic=\"#{var_param}\"}"
-    stdin, _stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
+    _, exitstatus = exec_call(var_cmd)
+    exitstatus
   end
 
   def auth_credssp=(var_param)
     var_cmd = "winrm set winrm/config/service/auth @{CredSSP=\"#{var_param}\"}"
-    stdin, _stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
+    _, exitstatus = exec_call(var_cmd)
+    exitstatus
   end
 
   def auth_kerberos=(var_param)
     var_cmd = "winrm set winrm/config/service/auth @{Kerberos=\"#{var_param}\"}"
-    stdin, _stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
+    _, exitstatus = exec_call(var_cmd)
+    exitstatus
   end
 
   def auth_negotiate=(var_param)
     var_cmd = "winrm set winrm/config/service/auth @{Negotiate=\"#{var_param}\"}"
-    stdin, _stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
+    _, exitstatus = exec_call(var_cmd)
+    exitstatus
   end
 
   def maxmemorypershellmb=(var_param)
     var_cmd = "winrm set winrm/config/winrs @{MaxMemoryPerShellMB=\"#{var_param}\"}"
-    stdin, _stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
+    _, exitstatus = exec_call(var_cmd)
+    exitstatus
   end
 
   def maxtimeoutms=(var_param)
     var_cmd = "winrm set winrm/config @{MaxTimeoutms=\"#{var_param}\"}"
-    stdin, _stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
+    _, exitstatus = exec_call(var_cmd)
+    exitstatus
   end
 
   def certificatethumbprint=(_var_param)
@@ -271,9 +237,8 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
     var_thumbprint = _thumbprint
 
     var_cmd = "winrm create winrm/config/listener?Address=*+Transport=HTTPS @{Hostname=\"#{Facter['fqdn'].value}\";CertificateThumbprint=\"#{var_thumbprint}\";Port=\"#{@resource[:port]}\"}"
-    stdin, _stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
+    _, exitstatus = exec_call(var_cmd)
+    exitstatus
   end
 
   ## implements
@@ -294,9 +259,8 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
 
   def destroy
     var_cmd = 'winrm.cmd invoke restore winrm/config @{}'
-    stdin, _stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
+    _, exitstatus = exec_call(var_cmd)
+    exitstatus
   end
 
   def exists?
@@ -304,11 +268,7 @@ Puppet::Type.type(:winrmssl).provide(:ruby_openssl) do
 
     var_cmd = 'winrm.cmd enumerate winrm/config/listener'
     var_rgx = %r{Transport = HTTPS\n[ ]{1,}Port = #{@resource[:port]}\n}
-
-    stdin, stdout, _stderr, wait_thr = Open3.popen3(var_cmd)
-    stdin.close
-    wait_thr.value.exitstatus
-    var_stdout = stdout.read
+    var_stdout, = exec_call(var_cmd)
 
     rgx_mth = var_rgx.match(var_stdout)
     var_rc = !rgx_mth.nil?
