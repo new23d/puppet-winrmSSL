@@ -4,9 +4,9 @@
   "author": "new23d, jpuskar, nekototori",
   "summary": "Setup WinRM over HTTPS and control some basic, essential settings. Also supports Puppet CA issued certificates.",
   "license": "Apache-2.0",
-  "source": "https://github.com/Nekototori/puppet-winrmSSL.git",
-  "project_page": "https://github.com/Nekototori/puppet-winrmSSL",
-  "issues_url": "https://github.com/Nekototori/puppet-winrmSSL/issues",
+  "source": "https://github.com/Nekototori/puppet-winrmssl.git",
+  "project_page": "https://github.com/Nekototori/puppet-winrmssl",
+  "issues_url": "https://github.com/Nekototori/puppet-winrmssl/issues",
   "dependencies": [
 
   ],
